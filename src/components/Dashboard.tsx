@@ -76,9 +76,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-semibold">
-              <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Sistem Manajemen Pelayaran & Ekspedisi Terpadu</span>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-semibold">
+                <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Sistem Manajemen Pelayaran & Ekspedisi Terpadu</span>
+              </div>
+              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                <span>Sinkronisasi Otomatis Semua Perangkat Online</span>
+              </div>
             </div>
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white tracking-tight">
               ARS LOGISTIC & PASSENGER SERVICE

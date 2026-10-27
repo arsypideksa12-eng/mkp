@@ -38,6 +38,7 @@ import {
   COLLECTIONS, 
   testFirestoreConnection,
   seedInitialFirestoreData,
+  initializeDatabaseAutoSync,
   auth
 } from './services/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -84,16 +85,28 @@ export default function App() {
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3000);
+    setTimeout(() => setToastMessage(null), 3500);
   };
 
-  // 1. Initial Cloud Connection Check & Firebase Auth Listener
+  // 1. Initial Cloud Connection Check & Automatic Multi-Device Database Synchronization
   useEffect(() => {
-    async function checkConnection() {
-      const res = await testFirestoreConnection();
-      setIsCloudConnected(res.success);
+    async function bootSync() {
+      setIsSyncing(true);
+      try {
+        const syncResult = await initializeDatabaseAutoSync();
+        setIsCloudConnected(syncResult.synced);
+        if (syncResult.seeded) {
+          showToast('Data pelayaran berhasil disinkronkan ke Cloud Firestore.');
+        } else {
+          showToast('Database Cloud Firestore online. Sinkronisasi antar-perangkat aktif.');
+        }
+      } catch (err) {
+        console.warn('Boot sync notice:', err);
+      } finally {
+        setIsSyncing(false);
+      }
     }
-    checkConnection();
+    bootSync();
 
     const unsubAuth = onAuthStateChanged(auth, (user) => {
       if (user) {

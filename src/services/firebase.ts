@@ -9,7 +9,9 @@ import {
   updateDoc, 
   deleteDoc, 
   onSnapshot, 
-  getDocFromServer
+  getDocFromServer,
+  enableNetwork,
+  disableNetwork
 } from 'firebase/firestore';
 import { 
   getAuth, 
@@ -77,7 +79,7 @@ export async function testFirestoreConnection(): Promise<{ success: boolean; mes
     if (error instanceof Error && error.message.includes('the client is offline')) {
       return { success: false, message: 'Koneksi Firestore offline. Menggunakan cache lokal.' };
     }
-    // Still connected even if doc doesn't exist
+    // Connected to Firestore
     return { success: true, message: `Status Cloud DB: Terhubung (${firebaseConfig.projectId})` };
   }
 }
@@ -91,7 +93,38 @@ export const COLLECTIONS = {
   TICKETS: 'passenger_tickets',
 };
 
-// Generic Realtime Subscription with Local Fallback
+// Automatic Cloud Database Synchronization upon app load across all devices
+export async function initializeDatabaseAutoSync(): Promise<{ seeded: boolean; synced: boolean; message: string }> {
+  try {
+    const shipsRef = collection(db, COLLECTIONS.SHIPS);
+    const snap = await getDocs(shipsRef);
+
+    if (snap.empty) {
+      console.log('Database Cloud Firestore kosong. Menginjeksi data operasional awal secara otomatis...');
+      await seedInitialFirestoreData();
+      return { 
+        seeded: true, 
+        synced: true, 
+        message: 'Database berhasil diinisialisasi & disinkronkan ke Cloud Firestore untuk semua perangkat.' 
+      };
+    }
+
+    return { 
+      seeded: false, 
+      synced: true, 
+      message: 'Database Cloud Firestore tersinkronisasi online dengan semua perangkat.' 
+    };
+  } catch (error: any) {
+    handleFirestoreError(error, OperationType.LIST, COLLECTIONS.SHIPS);
+    return { 
+      seeded: false, 
+      synced: false, 
+      message: error?.message || 'Sinkronisasi lokal aktif.' 
+    };
+  }
+}
+
+// Generic Realtime Subscription with Instant Local Cache + Live Cloud Sync
 export function subscribeCollection<T extends { id: string }>(
   collectionName: string,
   initialFallback: T[],
@@ -99,9 +132,9 @@ export function subscribeCollection<T extends { id: string }>(
   onError?: (err: any) => void
 ) {
   const colRef = collection(db, collectionName);
-  
-  // First load from localStorage if available, or fallback
   const localCacheKey = `ars_${collectionName}`;
+
+  // 1. Instantly deliver cached data so UI is immediate on any device
   const cached = localStorage.getItem(localCacheKey);
   if (cached) {
     try {
@@ -118,7 +151,7 @@ export function subscribeCollection<T extends { id: string }>(
     onUpdate(initialFallback);
   }
 
-  // Subscribe to live Firestore updates
+  // 2. Subscribe to live Firestore updates across all devices
   const unsubscribe = onSnapshot(
     colRef,
     (snapshot) => {
@@ -127,7 +160,7 @@ export function subscribeCollection<T extends { id: string }>(
         localStorage.setItem(localCacheKey, JSON.stringify(items));
         onUpdate(items);
       } else {
-        // If empty in cloud, check if we have local cache or default
+        // If empty in cloud, check local cache or fallback
         const local = localStorage.getItem(localCacheKey);
         if (local) {
           try {
@@ -155,15 +188,8 @@ export async function saveDocument<T extends { id: string }>(
   data: T
 ): Promise<void> {
   const localCacheKey = `ars_${collectionName}`;
-  try {
-    // 1. Save to Firestore
-    const docRef = doc(db, collectionName, data.id);
-    await setDoc(docRef, { ...data, updatedAt: new Date().toISOString() }, { merge: true });
-  } catch (error) {
-    handleFirestoreError(error, OperationType.WRITE, `${collectionName}/${data.id}`);
-  }
 
-  // 2. Always maintain local cache for resilient offline and instant responsive UI
+  // 1. Immediately update local cache for instant zero-latency UI
   try {
     const cached = localStorage.getItem(localCacheKey);
     let items: T[] = cached ? JSON.parse(cached) : [];
@@ -177,6 +203,14 @@ export async function saveDocument<T extends { id: string }>(
   } catch (err) {
     console.error('Local cache error:', err);
   }
+
+  // 2. Push mutation to Firestore Cloud (broadcasts to all other devices in real-time)
+  try {
+    const docRef = doc(db, collectionName, data.id);
+    await setDoc(docRef, { ...data, updatedAt: new Date().toISOString() }, { merge: true });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, `${collectionName}/${data.id}`);
+  }
 }
 
 // CRUD Operations: Delete
@@ -185,13 +219,8 @@ export async function deleteDocument(
   id: string
 ): Promise<void> {
   const localCacheKey = `ars_${collectionName}`;
-  try {
-    const docRef = doc(db, collectionName, id);
-    await deleteDoc(docRef);
-  } catch (error) {
-    handleFirestoreError(error, OperationType.DELETE, `${collectionName}/${id}`);
-  }
 
+  // 1. Update local cache immediately
   try {
     const cached = localStorage.getItem(localCacheKey);
     if (cached) {
@@ -201,6 +230,14 @@ export async function deleteDocument(
     }
   } catch (err) {
     console.error('Local cache delete error:', err);
+  }
+
+  // 2. Delete from Firestore Cloud (deletes across all devices in real-time)
+  try {
+    const docRef = doc(db, collectionName, id);
+    await deleteDoc(docRef);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.DELETE, `${collectionName}/${id}`);
   }
 }
 

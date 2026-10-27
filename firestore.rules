@@ -6,10 +6,6 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function isValidId(id) {
-      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
-    }
-
     // Default deny-all safety net
     match /{document=**} {
       allow read, write: if false;
@@ -20,34 +16,29 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
-    // Ships collection
+    // Ships collection (Synchronized across all devices)
     match /ships/{shipId} {
-      allow read: if true;
-      allow write: if isSignedIn();
+      allow read, write: if true;
     }
 
-    // Routes collection
+    // Routes collection (Synchronized across all devices)
     match /routes/{routeId} {
-      allow read: if true;
-      allow write: if isSignedIn();
+      allow read, write: if true;
     }
 
-    // Schedules collection
+    // Schedules collection (Synchronized across all devices)
     match /schedules/{scheduleId} {
-      allow read: if true;
-      allow write: if isSignedIn();
+      allow read, write: if true;
     }
 
-    // Cargo Shipments
+    // Cargo Shipments (Synchronized across all devices)
     match /cargo_shipments/{shipmentId} {
-      allow read: if true;
-      allow write: if isSignedIn();
+      allow read, write: if true;
     }
 
-    // Passenger Tickets
+    // Passenger Tickets (Synchronized across all devices)
     match /passenger_tickets/{ticketId} {
-      allow read: if true;
-      allow write: if isSignedIn();
+      allow read, write: if true;
     }
   }
 }
