@@ -1,0 +1,53 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Default deny-all safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Connection test document
+    match /test/{docId} {
+      allow read, write: if true;
+    }
+
+    // Ships collection
+    match /ships/{shipId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // Routes collection
+    match /routes/{routeId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // Schedules collection
+    match /schedules/{scheduleId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // Cargo Shipments
+    match /cargo_shipments/{shipmentId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // Passenger Tickets
+    match /passenger_tickets/{ticketId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+  }
+}

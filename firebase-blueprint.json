@@ -1,0 +1,140 @@
+{
+  "entities": {
+    "Ship": {
+      "title": "Ship",
+      "description": "Master data for maritime fleet and vessels",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "maxLength": 100 },
+        "code": { "type": "string", "maxLength": 30 },
+        "type": { "type": "string", "enum": ["Ro-Ro Ferry", "Container Ship", "Fast Passenger Boat", "General Cargo", "Bulk Carrier"] },
+        "passengerCapacity": { "type": "number" },
+        "cargoCapacityTons": { "type": "number" },
+        "containerTeus": { "type": "number" },
+        "speedKnots": { "type": "number" },
+        "status": { "type": "string", "enum": ["Active", "Docked", "Maintenance", "Sailing"] },
+        "captainName": { "type": "string", "maxLength": 100 },
+        "yearBuilt": { "type": "number" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["name", "code", "type", "passengerCapacity", "cargoCapacityTons", "status"]
+    },
+    "Route": {
+      "title": "Route",
+      "description": "Master data for shipping routes and sea lanes",
+      "type": "object",
+      "properties": {
+        "originPort": { "type": "string", "maxLength": 100 },
+        "destinationPort": { "type": "string", "maxLength": 100 },
+        "distanceNm": { "type": "number" },
+        "estimatedHours": { "type": "number" },
+        "basePassengerFare": { "type": "number" },
+        "baseCargoRatePerTon": { "type": "number" },
+        "status": { "type": "string", "enum": ["Active", "Inactive"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["originPort", "destinationPort", "distanceNm", "estimatedHours", "basePassengerFare", "baseCargoRatePerTon"]
+    },
+    "Schedule": {
+      "title": "Schedule",
+      "description": "Voyage schedules for ships along routes",
+      "type": "object",
+      "properties": {
+        "voyageNumber": { "type": "string", "maxLength": 50 },
+        "shipId": { "type": "string", "maxLength": 100 },
+        "shipName": { "type": "string", "maxLength": 100 },
+        "routeId": { "type": "string", "maxLength": 100 },
+        "originPort": { "type": "string", "maxLength": 100 },
+        "destinationPort": { "type": "string", "maxLength": 100 },
+        "departureTime": { "type": "string" },
+        "arrivalTime": { "type": "string" },
+        "status": { "type": "string", "enum": ["Scheduled", "Boarding", "Sailing", "Arrived", "Delayed", "Cancelled"] },
+        "bookedPassengers": { "type": "number" },
+        "bookedCargoTons": { "type": "number" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["voyageNumber", "shipId", "routeId", "departureTime", "arrivalTime", "status"]
+    },
+    "CargoShipment": {
+      "title": "CargoShipment",
+      "description": "Cargo and container freight transaction records",
+      "type": "object",
+      "properties": {
+        "billOfLadingNumber": { "type": "string", "maxLength": 50 },
+        "scheduleId": { "type": "string", "maxLength": 100 },
+        "shipName": { "type": "string", "maxLength": 100 },
+        "voyageNumber": { "type": "string", "maxLength": 50 },
+        "originPort": { "type": "string", "maxLength": 100 },
+        "destinationPort": { "type": "string", "maxLength": 100 },
+        "senderName": { "type": "string", "maxLength": 100 },
+        "senderPhone": { "type": "string", "maxLength": 30 },
+        "receiverName": { "type": "string", "maxLength": 100 },
+        "receiverPhone": { "type": "string", "maxLength": 30 },
+        "cargoType": { "type": "string", "enum": ["Dry Container 20ft", "Dry Container 40ft", "Reefer Cold Container", "General Cargo (Pallet)", "Heavy Equipment / Truk", "Vehicles / Kendaraan", "Liquid / Bulk"] },
+        "weightTons": { "type": "number" },
+        "volumeM3": { "type": "number" },
+        "containerOrPlateNumber": { "type": "string", "maxLength": 50 },
+        "cargoDescription": { "type": "string", "maxLength": 300 },
+        "totalAmount": { "type": "number" },
+        "paymentStatus": { "type": "string", "enum": ["Paid", "Unpaid", "Pending"] },
+        "shipmentStatus": { "type": "string", "enum": ["Booking", "Manifested", "Loaded", "In Transit", "Discharged", "Delivered"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["billOfLadingNumber", "senderName", "receiverName", "cargoType", "weightTons", "totalAmount", "shipmentStatus"]
+    },
+    "PassengerTicket": {
+      "title": "PassengerTicket",
+      "description": "Passenger ticket booking transactions",
+      "type": "object",
+      "properties": {
+        "ticketNumber": { "type": "string", "maxLength": 50 },
+        "scheduleId": { "type": "string", "maxLength": 100 },
+        "shipName": { "type": "string", "maxLength": 100 },
+        "voyageNumber": { "type": "string", "maxLength": 50 },
+        "originPort": { "type": "string", "maxLength": 100 },
+        "destinationPort": { "type": "string", "maxLength": 100 },
+        "passengerName": { "type": "string", "maxLength": 100 },
+        "identityNumber": { "type": "string", "maxLength": 50 },
+        "gender": { "type": "string", "enum": ["Laki-laki", "Perempuan"] },
+        "phone": { "type": "string", "maxLength": 30 },
+        "passengerClass": { "type": "string", "enum": ["VIP Cabin", "Kelas 1", "Bisnis AC", "Ekonomi Dek"] },
+        "seatOrCabinNumber": { "type": "string", "maxLength": 30 },
+        "fareAmount": { "type": "number" },
+        "insuranceFee": { "type": "number" },
+        "portServiceFee": { "type": "number" },
+        "totalFare": { "type": "number" },
+        "paymentStatus": { "type": "string", "enum": ["Paid", "Unpaid", "Cancelled"] },
+        "boardingStatus": { "type": "string", "enum": ["Booked", "Checked-in", "Boarded", "Completed", "Cancelled"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["ticketNumber", "passengerName", "identityNumber", "passengerClass", "totalFare", "boardingStatus"]
+    }
+  },
+  "firestore": {
+    "/ships/{shipId}": {
+      "schema": "Ship",
+      "description": "Master collection of all registered ships and vessels"
+    },
+    "/routes/{routeId}": {
+      "schema": "Route",
+      "description": "Master collection of shipping routes and ports"
+    },
+    "/schedules/{scheduleId}": {
+      "schema": "Schedule",
+      "description": "Active and historical voyage schedules"
+    },
+    "/cargo_shipments/{shipmentId}": {
+      "schema": "CargoShipment",
+      "description": "Cargo shipments, containers and bill of lading transactions"
+    },
+    "/passenger_tickets/{ticketId}": {
+      "schema": "PassengerTicket",
+      "description": "Passenger ticket bookings and boarding pass records"
+    }
+  }
+}

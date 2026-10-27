@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+@layer utilities {
+  .bg-slate-850 {
+    background-color: #111d33;
+  }
+  .bg-slate-750 {
+    background-color: #24344d;
+  }
+}
+
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  header, aside, .print\:hidden {
+    display: none !important;
+  }
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+  }
+}

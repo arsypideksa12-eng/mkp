@@ -1,0 +1,6 @@
+{
+  "name": "ARS LOGISTIC AND PASSENGER SERVICE",
+  "description": "Sistem Informasi Manajemen Terpadu Muatan Kapal (Cargo & Kontainer) dan Tiket Penumpang dengan Real-Time Database, Master Data, Transaksi & Laporan Lengkap.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
