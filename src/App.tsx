@@ -11,6 +11,7 @@ import { SchedulesManager } from './components/transactions/SchedulesManager';
 import { ReportsView } from './components/reports/ReportsView';
 import { DatabaseSyncView } from './components/database/DatabaseSyncView';
 import { LoginModal } from './components/auth/LoginModal';
+import { LoginPage } from './components/auth/LoginPage';
 import { BillOfLadingModal } from './components/documents/BillOfLadingModal';
 import { BoardingPassModal } from './components/documents/BoardingPassModal';
 
@@ -39,33 +40,25 @@ import {
   testFirestoreConnection,
   seedInitialFirestoreData,
   initializeDatabaseAutoSync,
-  auth
+  logoutUser
 } from './services/firebase';
-import { onAuthStateChanged } from 'firebase/auth';
 
 export default function App() {
   // Navigation & View State
   const [activeView, setActiveView] = useState<string>('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Authentication State
+  // Authentication State: Require Login Upfront
   const [currentUser, setCurrentUser] = useState<AdminUser | null>(() => {
     const saved = localStorage.getItem('ars_admin_session');
     if (saved) {
       try {
         return JSON.parse(saved);
       } catch {
-        // fallback default
+        // invalid JSON
       }
     }
-    // Default active admin for immediate usability
-    return {
-      id: 'admin-01',
-      username: 'arsypideksa12',
-      email: 'arsypideksa12@gmail.com',
-      displayName: 'Arsy Pideksa (Admin Utama)',
-      role: 'Super Admin'
-    };
+    return null; // Show Login Page at the beginning
   });
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
@@ -107,23 +100,6 @@ export default function App() {
       }
     }
     bootSync();
-
-    const unsubAuth = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        const admin: AdminUser = {
-          id: user.uid,
-          username: user.email?.split('@')[0] || 'admin',
-          email: user.email || 'admin@arslogistic.id',
-          displayName: user.displayName || 'Authorized Admin',
-          role: 'Super Admin',
-          avatarUrl: user.photoURL || undefined
-        };
-        setCurrentUser(admin);
-        localStorage.setItem('ars_admin_session', JSON.stringify(admin));
-      }
-    });
-
-    return () => unsubAuth();
   }, []);
 
   // 2. Real-time Subscriptions to Firestore Collections
@@ -186,7 +162,12 @@ export default function App() {
     showToast(`Selamat datang, ${user.displayName}!`);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+    } catch {
+      // ignore
+    }
     setCurrentUser(null);
     localStorage.removeItem('ars_admin_session');
     showToast('Admin berhasil logout.');
@@ -296,6 +277,16 @@ export default function App() {
     setTickets(prev => prev.filter(t => t.id !== ticketId));
     showToast('Tiket penumpang berhasil dibatalkan & dihapus.');
   };
+
+  // Upfront Login Gate: If user is not authenticated, show LoginPage immediately
+  if (!currentUser) {
+    return (
+      <LoginPage
+        onLoginSuccess={handleLoginSuccess}
+        isCloudConnected={isCloudConnected}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-cyan-500 selection:text-white">
